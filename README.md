@@ -1,74 +1,87 @@
-# Faireer (`faireer`) — EdTech Course Marketplace, Scholarships & Career Ecosystem
+# Faireer (`faireer`) — EdTech Course Marketplace, Scholarships & Career Bridge
 
-A full-stack Next.js and Supabase online learning marketplace (`fairer-app`) combining self-paced courses, instructor dashboards, verified certificates, scholarships, community support, and an integrated `bidjobs` career bridge.
+<p align="center">
+  <img src="./public/logo.png" alt="Faireer Logo" width="180" />
+</p>
+
+## Table of Contents
+- [Executive Summary & Business Utility](#executive-summary--business-utility)
+- [Visual Showcase (UI & Dashboards)](#visual-showcase-ui--dashboards)
+- [System Architecture & Layers](#system-architecture--layers)
+- [Data Model & Learning Flows](#data-model--learning-flows)
+- [Application Modules & Workflows](#application-modules--workflows)
+- [Getting Started & Scripts](#getting-started--scripts)
+- [Business Value, ROI & Growth Opportunities](#business-value-roi--growth-opportunities)
 
 ---
 
-## 1. Executive Summary & Purpose
-`faireer` connects learners, instructors, and scholarship sponsors on a single platform. Students discover courses (`/courses`, `/search`), manage carts and checkout (`/cart`, `/checkout`), earn certificates (`/certificates`), and transition into work opportunities (`/bidjobs`), while instructors and admins manage content and orders from `/dashboard`.
+## Executive Summary & Business Utility
+`faireer` (`fairer-app`) is a full-stack Next.js and Supabase EdTech marketplace designed to connect learners, instructors, and scholarship sponsors. Beyond standard course sales (`/courses`, `/cart`, `/checkout`), it closes the loop between education and employment through verifiable certificates (`/certificates`), sponsored scholarships (`/scholarships`), community support (`/support/chat`, `/support/community`), and a direct `/bidjobs` career bridge.
 
 ---
 
-## 2. System Architecture & Layers
+## Visual Showcase (UI & Dashboards)
+Hero and branding visuals stored in `public/`:
+
+| Platform Hero Visual | Brand Identity |
+| :---: | :---: |
+| ![Faireer Hero](./public/hero-v2.png) | ![Faireer Logo](./public/logo.png) |
+
+---
+
+## System Architecture & Layers
 
 ```mermaid
 flowchart TB
-    subgraph L1["1. Learning & Commerce UI Layer"]
-        Courses["/courses • /courses/[id] • /courses/lesson • /courses/create"]
-        Commerce["/cart (CartContext) • /checkout • /scholarships • /certificates"]
-        Community["/support/{chat,community,contact} • /bidjobs • /[username]"]
+    subgraph L1["1. Learning & Discovery Layer"]
+        Courses["/courses • /courses/[id] • /courses/lesson • /courses/create • /search"]
+        Creds["/certificates • /scholarships • /bidjobs • /[username]"]
     end
 
-    subgraph L2["2. Role Dashboards Layer"]
+    subgraph L2["2. E-Commerce & Cart State Layer"]
+        Cart["CartContext.tsx -> /cart -> /checkout"]
+    end
+
+    subgraph L3["3. Multi-Role Dashboards & Support Layer"]
         Dash["/dashboard • /dashboard/instructor • /dashboard/admin • /dashboard/orders • /dashboard/notifications"]
+        Sup["/support/{page,chat,community,contact}"]
     end
 
-    subgraph L3["3. Auth, Middleware & Data Layer"]
+    subgraph L4["4. Middleware & Supabase Data Layer"]
         MW["src/middleware.ts"]
-        Supa["Supabase (src/lib/supabase.ts)"]
+        Supa["src/lib/supabase.ts"]
     end
 
-    L1 --> L2 --> L3
+    L1 --> L2 --> L4
+    L3 --> L4
 ```
 
 | Layer | Responsibility | Key Files |
 | :--- | :--- | :--- |
-| **Learning Experience Layer** | Course discovery, course creation, lesson player, public `[username]` portfolios, and certificates | `src/app/courses/{page,[id],lesson,create}/page.tsx`, `src/app/{certificates,scholarships,[username]}/page.tsx` |
-| **E-Commerce & Cart Layer** | Persistent shopping cart state (`CartContext.tsx`) and checkout pipeline | `src/context/CartContext.tsx`, `src/app/{cart,checkout}/page.tsx` |
-| **Multi-Role Dashboards** | Student, Instructor, and Admin dashboards with order & notification tracking | `src/app/dashboard/{page,instructor,admin,orders,notifications}/page.tsx` |
-| **Support & Career Bridge** | Live chat, community forums, contact support, and BidJobs integration | `src/app/support/{page,chat,community,contact}/page.tsx`, `src/app/bidjobs/page.tsx` |
-| **Middleware & Persistence Layer** | Session routing and Supabase client integration | `src/middleware.ts`, `src/lib/supabase.ts`, `src/lib/utils.ts` |
+| **Learning Experience Layer** | Course catalog, creation wizard, lesson player, certificates, scholarships, and public `[username]` profiles | `src/app/courses/*`, `src/app/{certificates,scholarships,bidjobs,[username]}/page.tsx` |
+| **Commerce & Cart Layer** | Client shopping cart state (`CartContext.tsx`) and checkout pipeline | `src/context/CartContext.tsx`, `src/app/{cart,checkout}/page.tsx` |
+| **Multi-Role Operations Layer** | Student, Instructor, and Admin dashboards with order and notification views | `src/app/dashboard/{page,instructor,admin,orders,notifications}/page.tsx` |
+| **Support & Community Layer** | Live support chat, community forums, and contact forms | `src/app/support/{page,chat,community,contact}/page.tsx` |
+| **Auth & Persistence Layer** | Request middleware and Supabase client | `src/middleware.ts`, `src/lib/supabase.ts`, `src/components/Header.tsx` |
 
 ---
 
-## 3. Core Functionality & Modules
-- **Course Marketplace (`/courses`, `/courses/[id]`, `/courses/lesson`)**: Browse, purchase, and complete structured video/text lessons.
-- **Instructor Studio (`/courses/create`, `/dashboard/instructor`)**: Publish courses and track enrollments.
-- **Scholarships & Certificates (`/scholarships`, `/certificates`)**: Expand access through sponsored seats and verifiable completion credentials.
-- **E-Commerce Flow (`/cart`, `/checkout`, `/dashboard/orders`)**: Full cart-to-order lifecycle.
-- **Community & Support (`/support/chat`, `/support/community`)**: Peer discussion and helpdesk channels.
+## Data Model & Learning Flows
+- **Student Flow**: Discover (`/courses`, `/search`) -> Add to Cart (`CartContext`) -> Checkout (`/checkout`) -> Learn (`/courses/lesson`) -> Certify (`/certificates`) -> Apply for Work (`/bidjobs`).
+- **Instructor Flow**: Create Course (`/courses/create`) -> Track Sales & Enrollments (`/dashboard/instructor`, `/dashboard/orders`).
 
 ---
 
-## 4. Project Structure
-```text
-├── src/
-│   ├── app/
-│   │   ├── courses/      # Catalog, [id], lesson player, course creator
-│   │   ├── dashboard/    # Student, instructor, admin, orders, notifications
-│   │   ├── support/      # chat, community, contact
-│   │   ├── cart/, checkout/, certificates/, scholarships/, bidjobs/
-│   │   ├── login/, signup/, profile/, settings/, search/, [username]/
-│   ├── components/       # Header, HeaderWrapper
-│   ├── context/          # CartContext
-│   ├── lib/              # supabase.ts, utils.ts
-│   └── middleware.ts
-└── public/
-```
+## Application Modules & Workflows
+- **Courses**: `/courses`, `/courses/[id]`, `/courses/lesson`, `/courses/create`
+- **Commerce**: `/cart`, `/checkout`, `/dashboard/orders`
+- **Dashboards**: `/dashboard`, `/dashboard/instructor`, `/dashboard/admin`, `/dashboard/notifications`
+- **Auth & Profiles**: `/login`, `/signup`, `/profile`, `/settings`, `/[username]`
+- **Support & Career**: `/support`, `/support/chat`, `/support/community`, `/support/contact`, `/scholarships`, `/certificates`, `/bidjobs`
 
 ---
 
-## 5. Getting Started
+## Getting Started & Scripts
 
 ```bash
 git clone https://github.com/islamsamyy/faireer.git
@@ -79,7 +92,7 @@ npm run dev
 
 ---
 
-## 6. Business Value & Growth Opportunities
-- **Learn-to-Earn Ecosystem**: Linking `/certificates` directly to `/bidjobs` creates a high-retention loop where graduates immediately monetize newly learned skills.
-- **B2B Corporate Training & NGO Scholarships**: Use `/scholarships` to sell bulk seat sponsorships to NGOs, universities, and corporate L&D departments.
-- **Instructor Revenue Share**: Take a marketplace commission on course sales while offering instructors built-in audience distribution.
+## Business Value, ROI & Growth Opportunities
+- **Learn-to-Earn Retention**: Connecting `/certificates` to `/bidjobs` increases course completion rates and platform stickiness.
+- **Sponsored Seat Revenue (`/scholarships`)**: Sell bulk scholarship cohorts to NGOs, universities, and corporate CSR programs.
+- **Creator Marketplace Economics**: Take a platform commission on instructor-created courses while offering zero-setup hosting and student support.
